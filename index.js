@@ -142,5 +142,5 @@ server.applyMiddleware({ app, path: '/', })
 
 app.listen({ port: keys.apiPort }, () =>
   // eslint-disable-next-line no-console
-  console.log(`🚀 Server ready at ${keys.apiEndpoint}:${keys.apiPort}${server.graphqlPath}`)
+  !process.env.ENVIRONMENT ? console.log(`🚀 Server ready at ${keys.apiEndpoint}:${keys.apiPort}${server.graphqlPath}`) : null
 );
