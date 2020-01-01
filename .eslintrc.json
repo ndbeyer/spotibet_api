@@ -1,0 +1,78 @@
+{
+	"parser": "babel-eslint",
+	"env": {
+		"browser": true,
+		"es6": true,
+		"jest/globals": true
+	},
+	"plugins": ["react", "react-perf", "react-hooks", "react-native", "jest", "promise"],
+	"extends": [
+		"eslint:recommended",
+		"plugin:react/recommended",
+		"plugin:react-perf/recommended",
+		"plugin:jest/recommended",
+		"plugin:promise/recommended"
+	],
+	"globals": {
+		"module": true,
+		"process": true,
+		"global": true,
+		"__DEV__": true,
+		"element": true,
+		"device": true,
+		"by": true
+	},
+	"settings": {
+		"import/resolver": {
+			"babel-module": {}
+		},
+		"react": {
+			"version": "detect",
+			"flowVersion": "0.78"
+		}
+	},
+	"rules": {
+		"no-var": "warn",
+		"prefer-const": [
+			"warn",
+			{
+				"destructuring": "all"
+			}
+		],
+		"no-await-in-loop": "error",
+		"prefer-spread": "error",
+		"no-template-curly-in-string": "warn",
+		"valid-jsdoc": "warn",
+		"default-case": "warn",
+		"eqeqeq": ["warn", "smart"],
+		"no-alert": "error",
+		"no-eval": "warn",
+		"no-extend-native": "warn",
+		"no-implicit-coercion": "warn",
+		"no-useless-concat": "warn",
+		"radix": "warn",
+		"wrap-iife": ["error", "inside"],
+		"no-shadow": "warn",
+		"no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
+		"react-native/no-unused-styles": "error",
+		"react-native/no-inline-styles": "error",
+		"react-native/no-color-literals": "error",
+		"react/boolean-prop-naming": [
+			"warn",
+			{
+				"rule": "^(is|has)[A-Z]([A-Za-z0-9]?)+"
+			}
+		],
+		"react/no-will-update-set-state": "warn",
+		"react/prefer-es6-class": ["error", "always"],
+		"react/no-unknown-property": "error",
+		"react/style-prop-object": "error",
+		"react/prop-types": "off",
+		"react/display-name": "off",
+		"react-hooks/rules-of-hooks": "error",
+		"react-hooks/exhaustive-deps": ["warn", { "additionalHooks": "useMemoWhenNotFocused" }],
+		"promise/prefer-await-to-then": "off",
+		"promise/prefer-await-to-callbacks": "off",
+		"promise/catch-or-return": "off"
+	}
+}
