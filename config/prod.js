@@ -1,6 +1,7 @@
 module.exports = {
   apiPort: process.env.PORT,
   apiEndpoint: process.env.API_ENDPOINT,
+  callbackUrl: process.env.CALLBACK_URL,
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   sessionSecret: process.env.SESSION_SECRET,
