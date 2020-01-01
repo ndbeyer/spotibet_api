@@ -10,6 +10,11 @@ const Bet = require("./classes/Bet");
 const makeEndedBetTransactions = require("./queries/makeEndedBetTransactions");
 const makeInvalidBetTransactions = require("./queries/makeInvalidBetTransactions");
 const { createBet, joinBet } = require("./mutations");
+const initializeDb = require("./util/initializeDb");
+
+(async () => {
+  await initializeDb();
+})();
 
 const app = express()
 assignAuthRoutes(app)
