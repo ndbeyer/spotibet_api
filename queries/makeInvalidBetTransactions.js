@@ -26,12 +26,13 @@ const getInvalidBets = async input => {
 
 const makeInvalidBetTransactions = async input => {
   try {
-    const betsToBeTransacted = await getInvalidBets(input);
-    if (!betsToBeTransacted.length) {
+    const invalidBets = await getInvalidBets(input);
+    console.log("invalidBets", invalidBets)
+    if (!invalidBets.length) {
       return { success: true };
     }
     await Promise.all(
-      betsToBeTransacted.map(async bet => {
+      invalidBets.map(async bet => {
         const participants = (
           await db.query(
             "SELECT user_id, bet_id, amount FROM public.participant WHERE bet_id = $1",

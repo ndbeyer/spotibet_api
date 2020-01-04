@@ -1,14 +1,15 @@
 const { ApolloServer, gql } = require("apollo-server-express");
-const express = require("express")
+const express = require("express");
 
-const keys = require("./config/keys")
-const assignAuthRoutes = require('./util/auth')
+const keys = require("./config/keys");
+const assignAuthRoutes = require("./util/auth");
 const createContext = require("./util/createContext");
 const Playlist = require("./classes/Playlist");
 const Artist = require("./classes/Artist");
 const Bet = require("./classes/Bet");
 const makeEndedBetTransactions = require("./queries/makeEndedBetTransactions");
 const makeInvalidBetTransactions = require("./queries/makeInvalidBetTransactions");
+const makeUserBetTransactions = require("./queries/makeUserBetTransactions");
 const { createBet, joinBet } = require("./mutations");
 const initializeDb = require("./util/initializeDb");
 
@@ -16,8 +17,8 @@ const initializeDb = require("./util/initializeDb");
   await initializeDb();
 })();
 
-const app = express()
-assignAuthRoutes(app)
+const app = express();
+assignAuthRoutes(app);
 
 const typeDefs = gql`
   type Query {
@@ -27,8 +28,6 @@ const typeDefs = gql`
     artist(id: ID!): Artist!
     bet(id: ID!): Bet!
     allBets: [Bet!]!
-    makeEndedBetTransactions(ids: [ID!]): Response!
-    makeInvalidBetTransactions(ids: [ID!]): Response!
   }
   type Mutation {
     createBet(
@@ -40,6 +39,9 @@ const typeDefs = gql`
       spotifyUrl: String!
     ): BetReturnType
     joinBet(betId: ID!, support: Boolean!, amount: Int!): Response
+    makeEndedBetTransactions(ids: [ID!]): Response!
+    makeInvalidBetTransactions(ids: [ID!]): Response!
+    makeUserBetTransactions(userId: ID): Response!
   }
   type Response {
     success: Boolean!
@@ -125,27 +127,35 @@ const resolvers = {
     artist: async (parent, { id }, { currentUser }) =>
       await Artist.gen(id, currentUser),
     bet: async (parent, { id }) => await Bet.gen(id),
-    allBets: async () => await Bet.allBets(),
-    makeEndedBetTransactions: async(_, { ids }) => await makeEndedBetTransactions(ids),
-    makeInvalidBetTransactions: async(_, { ids }) => await makeInvalidBetTransactions(ids),
+    allBets: async () => await Bet.allBets()
   },
   Mutation: {
     createBet: async (parent, args, { currentUser }) =>
       await createBet(args, currentUser),
     joinBet: async (parent, args, { currentUser }) =>
-      await joinBet(args, currentUser)
+      await joinBet(args, currentUser),
+    makeEndedBetTransactions: async (_, { ids }) =>
+      await makeEndedBetTransactions(ids),
+    makeInvalidBetTransactions: async (_, { ids }) =>
+      await makeInvalidBetTransactions(ids),
+    makeUserBetTransactions: async (_, { userId }, { currentUser }) =>
+      await makeUserBetTransactions(userId, currentUser)
   }
 };
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: createContext,
+  context: createContext
 });
 
-server.applyMiddleware({ app, path: '/', })
+server.applyMiddleware({ app, path: "/" });
 
 app.listen({ port: keys.apiPort }, () =>
   // eslint-disable-next-line no-console
-  !process.env.ENVIRONMENT ? console.log(`🚀 Server ready at ${keys.apiEndpoint}:${keys.apiPort}${server.graphqlPath}`) : null
+  !process.env.ENVIRONMENT
+    ? console.log(
+        `🚀 Server ready at ${keys.apiEndpoint}:${keys.apiPort}${server.graphqlPath}`
+      )
+    : null
 );

@@ -17,12 +17,12 @@ const getEndedBets = async input => {
 
 const makeEndedBetTransactions = async (input) => {
   try {
-    
-    const betsToBeTransacted = await getEndedBets(input);
-    if (!betsToBeTransacted.length) {
+    const endedBets = await getEndedBets(input);
+    console.log("endedBets", endedBets)
+    if (!endedBets.length) {
       return { success: true };
     }
-    const betsPerArtist = lodash.groupBy(betsToBeTransacted, "artist_id");
+    const betsPerArtist = lodash.groupBy(endedBets, "artist_id");
     // go through all artist-grouped bets, get stats for each artist
     for (const artistId in betsPerArtist) {
       // eslint-disable-next-line no-await-in-loop
