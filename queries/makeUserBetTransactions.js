@@ -12,8 +12,6 @@ const makeUserBetTransactions = async (userId, currentUser) => {
         [userIdDb]
       )
     ).rows.map(({ bet_id }) => bet_id);
-    console.log("betIds", betIds);
-
     await Promise.all([
       await makeEndedBetTransactions(betIds),
       await makeInvalidBetTransactions(betIds)
