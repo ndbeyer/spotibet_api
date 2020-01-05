@@ -124,18 +124,18 @@ module.exports = class Bet {
       ).rows[0].count;
       const betIsValid = Number(count) === 2;
       if (!betIsValid) {
-        if(!this.transactions) {
-          await makeInvalidBetTransactions(betIdDb)
-        }
+        // if(!this.transactions) {
+        //   await makeInvalidBetTransactions(betIdDb)
+        // }
         return "INVALID";
       }
       if (betIsValid && !betEnded(this.endDate)) {
         return "RUNNING";
       }
       if (betIsValid && betEnded(this.endDate)) {
-        if (!this.transactions) {
-          await makeEndedBetTransactions(betIdDb);
-        }
+        // if (!this.transactions) {
+        //   await makeEndedBetTransactions(betIdDb);
+        // }
         return "ENDED";
       }
     }
