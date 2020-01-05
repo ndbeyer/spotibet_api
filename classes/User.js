@@ -12,7 +12,7 @@ module.exports = class User {
   }
 
   static decryptId(id) {
-    return typeof id === "string" ? decrypt(id) : id
+    return typeof id === "string" ? decrypt(id) : id;
   }
 
   static async gen(id) {
@@ -39,18 +39,19 @@ module.exports = class User {
   }
 
   async transactions() {
+    await makeUserBetTransactions(this.id);
     const userIdDb = User.decryptId(this.id);
     const rows = (
-      await db.query(
-        `SELECT id FROM public.transaction WHERE user_id = $1`,
-        [userIdDb]
-      )
-    ).rows
+      await db.query(`SELECT id FROM public.transaction WHERE user_id = $1`, [
+        userIdDb
+      ])
+    ).rows;
     const ids = rows.map(({ id }) => Transaction.encryptDbId(id));
-    return await Transaction.genMult(ids)
+    return await Transaction.genMult(ids);
   }
 };
 
 // require other classes after exports to avoid circular dependencies
 const Bet = require("./Bet");
 const Transaction = require("./Transaction");
+const makeUserBetTransactions = require("../queries/makeUserBetTransactions");
