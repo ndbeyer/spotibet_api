@@ -16,7 +16,7 @@ module.exports = class Transaction {
   }
 
   static async genMult(ids) {
-    const dbIds = ids.map(id => Transaction.decryptId(id));
+    const dbIds = ids.map((id) => Transaction.decryptId(id));
     const res = await db.query(
       `SELECT
         id,
@@ -24,7 +24,7 @@ module.exports = class Transaction {
         amount,
         type, 
         bet_id AS betId,
-        datetime
+        datetime::text
         FROM public.transaction WHERE id = ANY($1)
         ORDER BY datetime DESC
         `,
@@ -34,17 +34,18 @@ module.exports = class Transaction {
       return [];
     }
     return res.rows.map(
-      transaction =>
+      (transaction) =>
         new Transaction({
           ...transaction,
           id: Transaction.encryptDbId(transaction.id),
           betId: Bet.encryptDbId(transaction.betId),
-          userId: User.encryptDbId(transaction.userId)
+          userId: User.encryptDbId(transaction.userId),
+          datetime: new Date(transaction.datetime).toISOString(),
         })
     );
   }
 };
 
 // require other classes after exports to avoid circular dependencies
-const Bet = require("./Bet")
-const User = require("./User")
+const Bet = require("./Bet");
+const User = require("./User");

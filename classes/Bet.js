@@ -24,8 +24,8 @@ module.exports = class Bet {
         artist_id AS "artistId",
         listeners,
         type,
-        start_date AS "startDate",
-        end_date AS "endDate",
+        start_date::text AS "startDate",
+        end_date::text AS "endDate",
         transactions,
         listeners_at_end_date AS "listenersAtEndDate"
         FROM public.bet WHERE id = $1`,
@@ -38,6 +38,8 @@ module.exports = class Bet {
     return new Bet({
       ...res.rows[0],
       id: Bet.encryptDbId(res.rows[0].id),
+      startDate: new Date(res.rows[0].startDate).toISOString(),
+      endDate: new Date(res.rows[0].endDate).toISOString(),
     });
   }
 
@@ -50,8 +52,8 @@ module.exports = class Bet {
         artist_id AS "artistId",
         listeners,
         type,
-        start_date AS "startDate",
-        end_date AS "endDate",
+        start_date::text AS "startDate",
+        end_date::text AS "endDate",
         transactions,
         listeners_at_end_date AS "listenersAtEndDate"
         FROM public.bet WHERE id = ANY($1)
@@ -67,6 +69,8 @@ module.exports = class Bet {
         new Bet({
           ...bet,
           id: Bet.encryptDbId(bet.id),
+          startDate: new Date(bet.startDate).toISOString(),
+          endDate: new Date(bet.endDate).toISOString(),
         })
     );
   }
