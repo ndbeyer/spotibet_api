@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { blockify } = require("./blockify");
+const { chunk } = require("lodash");
 
 const fetch = async (spotify_access_token, url) => {
   try {
@@ -7,8 +7,8 @@ const fetch = async (spotify_access_token, url) => {
       method: "get",
       url,
       headers: {
-        Authorization: `Bearer ${spotify_access_token}`
-      }
+        Authorization: `Bearer ${spotify_access_token}`,
+      },
     });
     return data;
     // eslint-disable-next-line no-console
@@ -24,30 +24,18 @@ const getSpotifyData = async (currentUser, type, identifier) => {
     case "artists": {
       const artistIds = identifier;
       if (Array.isArray(artistIds)) {
-        const [blockified, blocks] = blockify(artistIds, 50);
-        if (blockified) {
-          // identifier is an array of artistIds with more than 50 item in it
-          const result = (
-            await Promise.all(
-              blocks.map(
-                async block =>
-                  await fetch(
-                    spotify_access_token,
-                    `https://api.spotify.com/v1/artists?ids=${block.join(",")}`
-                  )
-              )
-            )
-          ).reduce((a, b) => [...a.artists, ...b.artists]);
-          return result;
-        } else {
-          // identifier is an array of artistIds
-          return (
+        const chunked = chunk(artistIds, 50);
+        const promises = chunked.map(
+          async (array) =>
             await fetch(
               spotify_access_token,
-              `https://api.spotify.com/v1/artists?ids=${artistIds.join(",")}`
+              `https://api.spotify.com/v1/artists?ids=${array.join(",")}`
             )
-          ).artists;
-        }
+        );
+        return (await Promise.all(promises)).reduce(
+          (a, b) => [...a, ...b.artists],
+          []
+        );
       } else {
         // identifier is one artistId
         return (
