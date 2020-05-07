@@ -127,7 +127,7 @@ const resolvers = {
     artist: async (parent, { id }, { currentUser }) =>
       await Artist.gen(id, currentUser),
     bet: async (parent, { id }) => await Bet.gen(id),
-    allBets: async () => await Bet.allBets()
+    allBets: async () => await Bet.allBets(),
   },
   Mutation: {
     createBet: async (parent, args, { currentUser }) =>
@@ -139,14 +139,14 @@ const resolvers = {
     makeInvalidBetTransactions: async (_, { ids }) =>
       await makeInvalidBetTransactions(ids),
     makeUserBetTransactions: async (_, { userId }, { currentUser }) =>
-      await makeUserBetTransactions(userId, currentUser)
-  }
+      await makeUserBetTransactions(userId, currentUser),
+  },
 };
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: createContext
+  context: createContext,
 });
 
 server.applyMiddleware({ app, path: "/" });

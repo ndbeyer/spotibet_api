@@ -1,8 +1,5 @@
 const { encrypt, decrypt } = require("../util/encryptDecrypt");
 const { db } = require("../db");
-const makeEndedBetTransactions = require("../queries/makeEndedBetTransactions");
-const makeInvalidBetTransactions = require("../queries/makeInvalidBetTransactions");
-const { betIsJoinable, betEnded } = require("../util/valiDate");
 
 // require other classes after exports to avoid circular dependencies
 
@@ -40,12 +37,12 @@ module.exports = class Bet {
     }
     return new Bet({
       ...res.rows[0],
-      id: Bet.encryptDbId(res.rows[0].id)
+      id: Bet.encryptDbId(res.rows[0].id),
     });
   }
 
   static async genMult(ids) {
-    const dbIds = ids.map(id => Bet.decryptId(id));
+    const dbIds = ids.map((id) => Bet.decryptId(id));
     const res = await db.query(
       `SELECT
         id,
@@ -66,10 +63,10 @@ module.exports = class Bet {
       return [];
     }
     return res.rows.map(
-      bet =>
+      (bet) =>
         new Bet({
           ...bet,
-          id: Bet.encryptDbId(bet.id)
+          id: Bet.encryptDbId(bet.id),
         })
     );
   }
@@ -113,7 +110,7 @@ module.exports = class Bet {
 
   async status() {
     const betIdDb = Bet.decryptId(this.id);
-    if (betIsJoinable(this.startDate)) {
+    if (new Date() < new Date(this.startDate)) {
       return "JOINABLE";
     } else {
       const count = (
@@ -129,10 +126,10 @@ module.exports = class Bet {
         // }
         return "INVALID";
       }
-      if (betIsValid && !betEnded(this.endDate)) {
+      if (betIsValid && new Date() < new Date(this.endDate)) {
         return "RUNNING";
       }
-      if (betIsValid && betEnded(this.endDate)) {
+      if (betIsValid && new Date() >= new Date(this.endDate)) {
         // if (!this.transactions) {
         //   await makeEndedBetTransactions(betIdDb);
         // }
