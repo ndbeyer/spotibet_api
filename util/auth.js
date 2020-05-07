@@ -12,18 +12,18 @@ const log = (req, res, next) => {
   next();
 };
 
-const stopSession = req => {
+const stopSession = (req) => {
   req.session = null;
   req.user = null;
   req.logout();
 };
 
-const assignAuthRoutes = app => {
+const assignAuthRoutes = (app) => {
   app.use(
     session({
       secret: keys.sessionSecret,
       resave: false,
-      saveUninitialized: false
+      saveUninitialized: false,
     })
   );
   app.use(bodyParser.urlencoded({ extended: false }));
@@ -39,7 +39,7 @@ const assignAuthRoutes = app => {
     log,
     passport.authenticate("spotify", {
       scope: ["user-read-email", "user-read-private"],
-      showDialog: true
+      showDialog: false,
     }),
     () => {}
   );
@@ -49,7 +49,7 @@ const assignAuthRoutes = app => {
     log,
     passport.authenticate("spotify", {
       successRedirect: "/auth/spotify/redirect",
-      failureRedirect: "/auth/spotify/failed"
+      failureRedirect: "/auth/spotify/failed",
     }),
     () => {}
   );
@@ -77,14 +77,14 @@ const assignAuthRoutes = app => {
       ).rows[0].id;
     } else {
       await db.query("UPDATE public.user SET spotify_access_token = $1", [
-        req.user.spotifyAccessToken
+        req.user.spotifyAccessToken,
       ]);
       userId = resp.rows[0].id;
     }
 
     const token = jwt.sign(
       {
-        data: { userId }
+        data: { userId },
       },
       keys.jwtSecret,
       { expiresIn: "1h" }
