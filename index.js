@@ -47,9 +47,7 @@ const typeDefs = gql`
     success: Boolean!
   }
   type BetReturnType {
-    success: Boolean!
     bet: Bet
-    error: String
   }
   type User {
     id: ID!

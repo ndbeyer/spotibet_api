@@ -13,11 +13,7 @@ const createBet = async (
     const betTimer = new BetTimer();
     const valid = betTimer.validate(endDate);
     if (!valid) {
-      return {
-        bet: null,
-        success: false,
-        error: "error during date validation",
-      };
+      throw new Error("Invalid betTiming");
     }
     const startDate = betTimer.starts("iso");
     // GENERATE BET ENTRY
@@ -47,22 +43,14 @@ const createBet = async (
         },
       }
     );
-    // ROLLBACK BET CREATION ON STAT SERVER ERROR
-    // eslint-disable-next-line no-console
-    console.log("statServer response", data);
     if (!data.success) {
-      const errorMessage = "error during sending artist to statServer";
-      // eslint-disable-next-line no-console
-      console.log(errorMessage);
       await db.query(`DELETE FROM public.bet WHERE id = $1`, [betId]);
-      return { bet: null, success: false, error: errorMessage };
+      throw new Error("error during sending artist to statServer");
     }
     const bet = await Bet.gen(betId);
-    return { bet, success: true };
+    return { bet };
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log("error creating bet", e);
-    return { bet: null, success: false, error: e };
+    throw new Error(e);
   }
 };
 
