@@ -18,17 +18,12 @@ const joinBet = async ({ betId, support, amount }, currentUser) => {
     const betIdDb = Bet.decryptId(betId);
     //make sure the bet is still joinable
     const betIsJoinable = await valiDateJoinDate(betIdDb);
-    if (!betIsJoinable) {
-      return { success: false, error: "The bet is no longer joinable" };
-    }
+    if (!betIsJoinable) throw new Error("BET_NOT_JOINABLE");
     // make sure the user has enough money
     const moneyBefore = (
       await db.query(`SELECT money FROM public.user WHERE id = $1`, [userIdDb])
     ).rows[0].money;
-
-    if (moneyBefore < amount) {
-      return { success: false, error: "You don't have enough money" };
-    }
+    if (moneyBefore < amount) throw new Error("NOT_ENOUGH_MONEY");
     // subtract money from currentUser
     await db.query(`UPDATE public.user SET money = money - $1 WHERE id = $2`, [
       amount,
@@ -44,11 +39,10 @@ const joinBet = async ({ betId, support, amount }, currentUser) => {
       "INSERT INTO public.participant (bet_id, user_id, support, amount) VALUES ($1, $2, $3, $4) RETURNING id",
       [betIdDb, userIdDb, support, amount]
     );
-    return { success: true };
+    const bet = await Bet.gen(betId);
+    return { bet };
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log("error in joinBet", e);
-    return { success: false };
+    throw new Error(e);
   }
 };
 
