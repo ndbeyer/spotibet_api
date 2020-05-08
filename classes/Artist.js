@@ -19,7 +19,7 @@ module.exports = class Artist {
           image: images.length ? images[0].url : null,
           popularity,
           followers: followers.total,
-          spotifyUrl: external_urls ? external_urls.spotify : null
+          spotifyUrl: external_urls ? external_urls.spotify : null,
         })
     )[0];
   }
@@ -35,7 +35,7 @@ module.exports = class Artist {
           image: images.length ? images[0].url : null,
           popularity,
           followers: followers.total,
-          spotifyUrl: external_urls ? external_urls.spotify : null
+          spotifyUrl: external_urls ? external_urls.spotify : null,
         })
     );
   }
@@ -44,7 +44,7 @@ module.exports = class Artist {
     const artistIds = (
       await getSpotifyData(currentUser, "playlistTracks", playlistId)
     ).items
-      .map(item => item.track.artists)
+      .map((item) => item.track.artists)
       .reduce((a, b) => [...a, ...b])
       .sort((a, b) => (b.name > a.name ? -1 : 1))
       .map(({ id }) => id);
@@ -59,18 +59,12 @@ module.exports = class Artist {
 
   async joinableBets() {
     const artistBetIdsDb = (
-      await db.query("SELECT id FROM public.bet WHERE artist_id = $1", [
-        this.id
-      ])
+      await db.query(
+        "SELECT id FROM public.bet WHERE artist_id = $1 AND now() < start_date",
+        [this.id]
+      )
     ).rows.map(({ id }) => id);
-    const allBets = await Bet.genMult(artistBetIdsDb);
-    const allBetsWithStatus = await Promise.all(
-      allBets.map(async bet => {
-        const status = await bet.status();
-        return { ...bet, status}
-      })
-    );
-    return allBetsWithStatus.filter(({status}) => status === "JOINABLE")
+    return await Bet.genMult(artistBetIdsDb);
   }
 };
 
