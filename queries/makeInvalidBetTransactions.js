@@ -1,6 +1,6 @@
 const { db } = require("../db");
 
-const getInvalidBets = async input => {
+const getInvalidBets = async (input) => {
   const ids = Array.isArray(input) ? input : [input];
   return (
     await db.query(
@@ -12,7 +12,7 @@ const getInvalidBets = async input => {
           SELECT bet.id, COUNT(DISTINCT support) FROM public.bet bet
           LEFT JOIN public.participant participant
           ON bet.id = participant.bet_id
-          WHERE now() > start_date + interval '1 day'
+          WHERE now() >= start_date
           AND transactions = false
           ${input ? "AND bet.id = ANY($1)" : ""}
           GROUP BY bet.id
@@ -24,15 +24,15 @@ const getInvalidBets = async input => {
   ).rows;
 };
 
-const makeInvalidBetTransactions = async input => {
+const makeInvalidBetTransactions = async (input) => {
   try {
     const invalidBets = await getInvalidBets(input);
-    console.log("invalidBets", invalidBets)
+    console.log("invalidBets", invalidBets);
     if (!invalidBets.length) {
       return { success: true };
     }
     await Promise.all(
-      invalidBets.map(async bet => {
+      invalidBets.map(async (bet) => {
         const participants = (
           await db.query(
             "SELECT user_id, bet_id, amount FROM public.participant WHERE bet_id = $1",
@@ -49,7 +49,7 @@ const makeInvalidBetTransactions = async input => {
               await db.query(
                 "INSERT INTO public.transaction (amount, user_id, type, bet_id, datetime) VALUES ($1, $2, 'PLUS', $3, now())",
                 [amount, user_id, bet_id]
-              )
+              ),
             ]);
           })
         );
