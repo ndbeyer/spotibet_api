@@ -1,6 +1,7 @@
 const { db } = require("../db");
 const User = require("../classes/User");
 const Bet = require("../classes/Bet");
+const Transaction = require("../classes/Transaction");
 
 const valiDateJoinDate = async (betIdDb) => {
   const { joinable } = (
@@ -30,17 +31,19 @@ const joinBet = async ({ betId, support, amount }, currentUser) => {
       userIdDb,
     ]);
     // make transaction entry
-    await db.query(
-      "INSERT INTO public.transaction (amount, user_id, type, bet_id, datetime) VALUES ($1, $2, $3, $4, now())",
+    const response = await db.query(
+      "INSERT INTO public.transaction (amount, user_id, type, bet_id, datetime) VALUES ($1, $2, $3, $4, now()) RETURNING id",
       [amount, userIdDb, "MINUS", betIdDb]
     );
+    const transactionId = response.rows[0].id;
+    const transaction = await Transaction.gen(transactionId);
     // create participation
     await db.query(
       "INSERT INTO public.participant (bet_id, user_id, support, amount) VALUES ($1, $2, $3, $4) RETURNING id",
       [betIdDb, userIdDb, support, amount]
     );
     const bet = await Bet.gen(betId);
-    return { bet };
+    return { bet, transaction };
   } catch (e) {
     throw new Error(e);
   }

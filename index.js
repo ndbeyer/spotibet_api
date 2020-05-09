@@ -37,8 +37,8 @@ const typeDefs = gql`
       listeners: Int!
       endDate: String!
       spotifyUrl: String!
-    ): BetReturnType
-    joinBet(betId: ID!, support: Boolean!, amount: Int!): BetReturnType
+    ): CreateBetReturnType
+    joinBet(betId: ID!, support: Boolean!, amount: Int!): JoinBetReturnType
     makeEndedBetTransactions(ids: [ID!]): Response!
     makeInvalidBetTransactions(ids: [ID!]): Response!
     makeUserBetTransactions(userId: ID): Response!
@@ -46,8 +46,12 @@ const typeDefs = gql`
   type Response {
     success: Boolean!
   }
-  type BetReturnType {
+  type CreateBetReturnType {
     bet: Bet
+  }
+  type JoinBetReturnType {
+    bet: Bet
+    transaction: Transaction
   }
   type User {
     id: ID!

@@ -15,6 +15,34 @@ module.exports = class Transaction {
     return typeof id === "string" ? decrypt(id) : id;
   }
 
+  static async gen(id) {
+    const dbId = Transaction.decryptId(id);
+    const rows = (
+      await db.query(
+        `SELECT
+        id,
+        user_id AS "_userId",
+        amount,
+        type, 
+        bet_id AS betId,
+        datetime::text
+        FROM public.transaction WHERE id = $1
+        `,
+        [dbId]
+      )
+    ).rows;
+    if (!rows.length) {
+      return null;
+    }
+    return new Transaction({
+      ...rows[0],
+      id: Transaction.encryptDbId(rows[0].id),
+      betId: Bet.encryptDbId(rows[0].betId),
+      userId: User.encryptDbId(rows[0].userId),
+      datetime: new Date(rows[0].datetime).toISOString(),
+    });
+  }
+
   static async genMult(ids) {
     const dbIds = ids.map((id) => Transaction.decryptId(id));
     const res = await db.query(
