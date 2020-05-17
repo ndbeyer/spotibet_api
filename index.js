@@ -18,6 +18,7 @@ const initializeDb = require("./util/initializeDb");
 })();
 
 const app = express();
+
 assignAuthRoutes(app);
 
 const typeDefs = gql`

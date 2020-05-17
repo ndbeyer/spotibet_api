@@ -4,7 +4,7 @@ const { db } = require("../db");
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
-require("./passport");
+const { clientId, clientSecret } = require("../config/keys");
 
 const log = (req, res, next) => {
   //eslint-disable-next-line no-console
@@ -12,107 +12,42 @@ const log = (req, res, next) => {
   next();
 };
 
+const spotifyConfig = {
+  clientId,
+  clientSecret,
+  redirectUri: "com.clientdemo:/oauthredirect",
+};
+
 const assignAuthRoutes = (app) => {
-  app.use(
-    session({
-      secret: keys.sessionSecret,
-      resave: false,
-      saveUninitialized: false,
-    })
-  );
+  app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   app.get("/hello", (req, res) => {
     res.send("<div>Hello</div>");
   });
 
-  app.get(
-    "/auth/spotify",
-    log,
-    passport.authenticate("spotify", {
-      scope: ["user-read-email", "user-read-private"],
-      showDialog: false,
-    }),
-    () => {}
-  );
+  app.post("/auth", (req, res) => {
+    const { code, refreshToken } = req.body;
+    console.log({ code, refreshToken });
 
-  app.get(
-    "/auth/spotify/callback",
-    log,
-    passport.authenticate("spotify", {
-      successRedirect: "/auth/spotify/redirect",
-      failureRedirect: "/auth/spotify/failed",
-    }),
-    () => {}
-  );
-
-  const dispatch = `function dispatch(type, payload) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({type: type, payload: payload}))
-  }`;
-
-  app.get("/auth/spotify/redirect", log, async (req, res) => {
-    // create or login user
-    // if user does not exist, create and get user id, write user id into jwt
-    // if user does exist, get user id and write user id into jwt
-
-    const resp = await db.query(
-      `SELECT id FROM public.user WHERE spotify_profile_id = $1`,
-      [req.user.spotifyProfileId]
-    );
-    let userId;
-    if (!resp.rows.length) {
-      userId = (
-        await db.query(
-          `INSERT INTO public.user (spotify_profile_id, spotify_access_token, datetime, money) VALUES ($1, $2, now(), 100) returning id`,
-          [req.user.spotifyProfileId, req.user.spotifyAccessToken]
-        )
-      ).rows[0].id;
-    } else {
-      userId = resp.rows[0].id;
-      await db.query(
-        "UPDATE public.user SET spotify_access_token = $1 WHERE id = $2",
-        [req.user.spotifyAccessToken, resp.rows[0].id]
-      );
+    if (!code && !refreshToken) {
+      return res.status(403).json({ success: false, data: "Not authorized" });
     }
 
-    const token = jwt.sign(
-      {
-        data: { userId },
-      },
-      keys.jwtSecret,
-      { expiresIn: "1h" }
-    );
-    res.send(`
-      <html>
-          <body>
-              <script>
-                  ${dispatch}
-                  document.addEventListener('DOMContentLoaded', function(){ 
-                      console.log("${token}")
-                      dispatch('AUTHENTICATED', {
-                          jwt: '${token}'
-                      })
-                  })
-              </script>
-          </body>
-      </html>`);
+    if (refreshToken) {
+      //Refresh token is available, retrieve a new access token
+      return res.json({ todo: "Refresh accesstoken" });
+    }
+
+    if (code) {
+      //Retrieve new refresh token and access token
+      return res.json({ todo: "Get refresh token & access token" });
+    }
   });
 
-  app.get("/auth/spotify/failed", log, (req, res) => {
-    res.send(`
-      <html>
-          <body>
-              <script>
-                  ${dispatch}
-                  document.addEventListener('DOMContentLoaded', function(){ 
-                      dispatch('AUTHENTICATION_FAILED')
-                  })
-              </script>
-          </body>
-      </html>`);
-  });
+  app.get("*", (_, res) =>
+    res.status(404).json({ success: false, data: "endpoint not found." })
+  );
 };
 
 module.exports = assignAuthRoutes;
