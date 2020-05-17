@@ -16,12 +16,13 @@ passport.use(
     {
       clientID: keys.spotifyClientId,
       clientSecret: keys.spotifyClientSecret,
-      callbackURL: keys.callbackUrl
+      callbackURL: keys.callbackUrl,
     },
     async (accessToken, refreshToken, expires_in, profile, done) => {
       return done(null, {
         spotifyAccessToken: accessToken,
-        spotifyProfileId: profile.id
+        spotifyRefreshToken: refreshToken,
+        spotifyProfileId: profile.id,
       });
     }
   )
