@@ -18,7 +18,8 @@
     "nodemon": "^1.19.4",
     "passport": "^0.4.1",
     "passport-spotify": "^1.1.0",
-    "pg": "^7.12.1"
+    "pg": "^7.12.1",
+    "spotify-web-api-node": "^4.0.0"
   },
   "scripts": {
     "start": "nodemon index.js"
