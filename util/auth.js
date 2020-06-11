@@ -1,63 +1,90 @@
-// const { db } = require("../db");
-// const session = require("express-session");
-// const jwt = require("jsonwebtoken");
+const fetch = require("node-fetch");
+const queryString = require("querystring");
 const bodyParser = require("body-parser");
-const { clientId, clientSecret } = require("../config/keys");
-const SpotifyApi = require("spotify-web-api-node");
-const spotifyConfig = {
-  clientId,
-  clientSecret,
-  redirectUri: "com.spotibet:/oauthredirect",
-}; // necessary to get access_token and refresh_token for the authorization_code from spotify, therefore these infos must comply with the data in the spotiy developer dashboard
+const { db } = require("../db");
+const jwt = require("jsonwebtoken");
 
-const spotifyApi = new SpotifyApi(spotifyConfig);
+const { clientId, clientSecret } = require("../config/keys");
 
 const assignAuthRoutes = (app) => {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
 
-  app.get("/bla", (req, res) => {
-    console.log({ req, res });
-    res.status(200).json({ success: true, data: "great" });
+  app.get("/test", (req, res) => {
+    res.status(200).json({ success: true, data: "that was a successful test" });
   });
 
-  app.post("/auth", (req, res) => {
-    // this route will be called by our react native app after
-    // A. it has received an authorization_code from spotify
-    // B. or the app retreived a refresh_token from secure storage
-    const { code, refreshToken } = req.body;
-
-    console.log({ code, refreshToken });
-    console.log({ spotifyConfig });
+  app.post("/auth", async (req, res) => {
+    const { code, refreshToken, code_verifier } = req.body;
+    const { os } = req.query;
 
     if (!code && !refreshToken) {
-      return res.status(403).json({ success: false, data: "Not authorized" });
+      return res
+        .status(403)
+        .json({ success: false, data: "Neither code nor refreshToken" });
     }
 
-    if (refreshToken) {
-      //Refresh token is available, retrieve a new access token
-      return res.json({ todo: "Refresh accesstoken" });
-    }
-
+    // get access- and refresh-tokens for authorization_code
     if (code) {
-      //Retrieve new refresh token and access token
-      spotifyApi
-        .authorizationCodeGrant(code)
-        .then((data) => {
-          console.log(data);
-          return (
-            res.json({ success: true, data: data.body }),
-            (err) => {
-              console.log("error", err);
-              return res.json({ success: false, error: err });
-            }
-          );
-        })
-        .catch((error) => {
-          console.log("catchError", error);
-          return res.json({ success: false, error: error });
-        });
+      try {
+        const tokenResponse = await fetch(
+          "https://accounts.spotify.com/api/token",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: queryString.stringify({
+              code,
+              code_verifier,
+              grant_type: "authorization_code",
+              redirect_uri:
+                os === "ios"
+                  ? "com.spotibet:/oauthredirect"
+                  : "com.spotibet://oauthredirect",
+              client_id: clientId,
+              client_secret: clientSecret,
+            }),
+          }
+        );
+        if (tokenResponse.status !== 200)
+          return {
+            success: false,
+            error: `status code: ${tokenResponse.status}`,
+          };
+        if (tokenResponse.status === 200) {
+          const { access_token, refresh_token } = await tokenResponse.json();
+          const profileResponse = await fetch("https://api.spotify.com/v1/me", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+            },
+          });
+
+          if (profileResponse.status !== 200)
+            return {
+              success: false,
+              error: `profileResponse status code: ${profileResponse.status}`,
+            };
+          if (profileResponse.status === 200) {
+            const { id: spotifyProfileId } = await profileResponse.json();
+
+            // const res = await db.query(`SELECT id FROM user WHERE spotify_profile_id = $1`, [spotifyProfileId])
+
+            // if(!res.rows.length) {
+            //   // new user
+            // }
+
+            return { success: true, access_token, refresh_token, id };
+          }
+        }
+      } catch (e) {
+        return { success: false, error: e };
+      }
     }
+
+    // if (refreshToken) {
+    // }
   });
 
   app.get("*", (_, res) =>
