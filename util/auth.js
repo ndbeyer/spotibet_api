@@ -10,6 +10,8 @@ const {
   apiJwtSecret,
 } = require("../config/keys");
 
+const console = true; // TODO: remove
+
 const assignAuthRoutes = (app) => {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
@@ -19,8 +21,10 @@ const assignAuthRoutes = (app) => {
   });
 
   app.post("/get-jwt-for-auth-code", async (request, response) => {
+    console && console.log("hit get-jwt-for-auth-code");
     const { code, code_verifier } = request.body;
     const { os } = request.query;
+
     if (!code) {
       return response
         .status(403)
@@ -57,6 +61,7 @@ const assignAuthRoutes = (app) => {
             access_token: spotifyAccessToken,
             refresh_token, // TODO: write refresh_token into db
           } = await tokenResponse.json();
+          console && console.log({ spotifyAccessToken, refresh_token });
           const profileResponse = await fetch("https://api.spotify.com/v1/me", {
             method: "GET",
             headers: {
@@ -70,16 +75,19 @@ const assignAuthRoutes = (app) => {
             });
           } else {
             const { id: spotifyProfileId } = await profileResponse.json();
+            console && console.log({ spotifyProfileId });
             const userExistsRes = await db.query(
               `SELECT id FROM public.user WHERE spotify_profile_id = $1`,
               [spotifyProfileId]
             );
+            console && console.log({ userExistsRes });
             // new User
             if (!userExistsRes.rows.length) {
               const newUserRes = await db.query(
                 "INSERT INTO public.user spotify_profile_id = $1, spotify_access_token = $2, datetime = now(), money = 100 RETURNING id",
                 [spotifyProfileId, spotifyAccessToken]
               );
+              console && console.log({ newUserRes });
               const newUserId = newUserRes.rows[0].id;
               const token = jwt.sign({ id: newUserId }, apiJwtSecret);
               return response.json({
@@ -90,10 +98,12 @@ const assignAuthRoutes = (app) => {
             } else {
               // user already exists
               const alreadyExistentUserId = userExistsRes.rows[0].id;
+              console && console.log({ alreadyExistentUserId });
               const token = jwt.sign(
                 { id: alreadyExistentUserId },
                 apiJwtSecret
               );
+              console && console.log({ token });
               return response.json({
                 success: true,
                 newUser: false,
@@ -106,6 +116,9 @@ const assignAuthRoutes = (app) => {
         return response.json({ success: false, error: e });
       }
     }
+
+    // if (refreshToken) {
+    // }
   });
 
   app.get("*", (_, res) =>

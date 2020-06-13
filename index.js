@@ -154,11 +154,4 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app, path: "/" });
 
-app.listen({ port: keys.apiPort }, () =>
-  // eslint-disable-next-line no-console
-  !process.env.ENVIRONMENT
-    ? console.log(
-        `🚀 Server ready at ${keys.apiEndpoint}:${keys.apiPort}${server.graphqlPath}`
-      )
-    : null
-);
+app.listen({ port: process.env.PORT || 4000 });

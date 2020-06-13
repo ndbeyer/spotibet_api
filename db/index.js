@@ -1,20 +1,17 @@
 const keys = require("../config/keys");
 const { Pool } = require("pg");
 
-// eslint-disable-next-line no-console
-console.log("process.env.ENVIRONMENT", process.env.ENVIRONMENT)
-
 const pool = new Pool(
   process.env.ENVIRONMENT === "production"
     ? {
-        connectionString: keys.dbUrl
+        connectionString: keys.dbUrl,
       }
     : {
-        port: keys.dbPort,
-        host: keys.dbHost,
-        database: keys.dbName,
-        user: keys.dbUser,
-        password: keys.dbPassword
+        port: 5432,
+        host: "localhost",
+        database: "test",
+        user: "andreasbeyer",
+        password: "",
       }
 );
 
@@ -22,9 +19,9 @@ const dbAdapter = {
   query: async (sql, args) => {
     return await pool.query(sql, args);
   },
-  end: pool.end
+  end: pool.end,
 };
 
 module.exports = {
-  db: dbAdapter
+  db: dbAdapter,
 };
