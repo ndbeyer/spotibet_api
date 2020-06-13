@@ -4,7 +4,11 @@ const bodyParser = require("body-parser");
 const { db } = require("../db");
 const jwt = require("jsonwebtoken");
 
-const { clientId, clientSecret } = require("../config/keys");
+const {
+  spotifyClientId,
+  spotifyClientSecret,
+  apiJwtSecret,
+} = require("../config/keys");
 
 const assignAuthRoutes = (app) => {
   app.use(bodyParser.json());
@@ -14,18 +18,14 @@ const assignAuthRoutes = (app) => {
     res.status(200).json({ success: true, data: "that was a successful test" });
   });
 
-  app.post("/auth", async (req, res) => {
-    const { code, refreshToken, code_verifier } = req.body;
-    const { os } = req.query;
-
-    if (!code && !refreshToken) {
-      return res
+  app.post("/get-jwt-for-auth-code", async (request, response) => {
+    const { code, code_verifier } = request.body;
+    const { os } = request.query;
+    if (!code) {
+      return response
         .status(403)
-        .json({ success: false, data: "Neither code nor refreshToken" });
-    }
-
-    // get access- and refresh-tokens for authorization_code
-    if (code) {
+        .json({ success: false, data: "No authentication_code provided" });
+    } else {
       try {
         const tokenResponse = await fetch(
           "https://accounts.spotify.com/api/token",
@@ -42,49 +42,70 @@ const assignAuthRoutes = (app) => {
                 os === "ios"
                   ? "com.spotibet:/oauthredirect"
                   : "com.spotibet://oauthredirect",
-              client_id: clientId,
-              client_secret: clientSecret,
+              client_id: spotifyClientId,
+              client_secret: spotifyClientSecret,
             }),
           }
         );
-        if (tokenResponse.status !== 200)
-          return {
+        if (tokenResponse.status !== 200) {
+          return response.json({
             success: false,
             error: `status code: ${tokenResponse.status}`,
-          };
-        if (tokenResponse.status === 200) {
-          const { access_token, refresh_token } = await tokenResponse.json();
+          });
+        } else {
+          const {
+            access_token: spotifyAccessToken,
+            refresh_token, // TODO: write refresh_token into db
+          } = await tokenResponse.json();
           const profileResponse = await fetch("https://api.spotify.com/v1/me", {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${access_token}`,
+              Authorization: `Bearer ${spotifyAccessToken}`,
             },
           });
-
-          if (profileResponse.status !== 200)
-            return {
+          if (profileResponse.status !== 200) {
+            return response.json({
               success: false,
               error: `profileResponse status code: ${profileResponse.status}`,
-            };
-          if (profileResponse.status === 200) {
+            });
+          } else {
             const { id: spotifyProfileId } = await profileResponse.json();
-
-            // const res = await db.query(`SELECT id FROM user WHERE spotify_profile_id = $1`, [spotifyProfileId])
-
-            // if(!res.rows.length) {
-            //   // new user
-            // }
-
-            return { success: true, access_token, refresh_token, id };
+            const userExistsRes = await db.query(
+              `SELECT id FROM public.user WHERE spotify_profile_id = $1`,
+              [spotifyProfileId]
+            );
+            // new User
+            if (!userExistsRes.rows.length) {
+              const newUserRes = await db.query(
+                "INSERT INTO public.user spotify_profile_id = $1, spotify_access_token = $2, datetime = now(), money = 100 RETURNING id",
+                [spotifyProfileId, spotifyAccessToken]
+              );
+              const newUserId = newUserRes.rows[0].id;
+              const token = jwt.sign({ id: newUserId }, apiJwtSecret);
+              return response.json({
+                success: true,
+                newUser: true,
+                jwt: token,
+              });
+            } else {
+              // user already exists
+              const alreadyExistentUserId = userExistsRes.rows[0].id;
+              const token = jwt.sign(
+                { id: alreadyExistentUserId },
+                apiJwtSecret
+              );
+              return response.json({
+                success: true,
+                newUser: false,
+                jwt: token,
+              });
+            }
           }
         }
       } catch (e) {
-        return { success: false, error: e };
+        return response.json({ success: false, error: e });
       }
     }
-
-    // if (refreshToken) {
-    // }
   });
 
   app.get("*", (_, res) =>
