@@ -1,7 +1,6 @@
 const { ApolloServer, gql } = require("apollo-server-express");
 const express = require("express");
 
-const keys = require("./config/keys");
 const assignAuthRoutes = require("./util/auth");
 const createContext = require("./util/createContext");
 const Playlist = require("./classes/Playlist");

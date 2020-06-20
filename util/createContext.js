@@ -1,22 +1,23 @@
+const { AuthenticationError } = require("apollo-server-express");
+
 const jwt = require("jsonwebtoken");
-const keys = require("../config/keys");
+const { apiJwtSecret } = require("../config/keys");
 const User = require("../classes/User");
 
-const createContext = async ({ req, res }) => {
+const createContext = async ({ req }) => {
   const token =
     req.headers.authorization &&
     req.headers.authorization.replace("Bearer ", "");
   try {
-    const { data } = jwt.verify(token, keys.jwtSecret);
-    const currentUser = await User.gen(data.userId);
-    return { currentUser };
+    const { id } = jwt.verify(token, apiJwtSecret);
+    if (id) {
+      const currentUser = await User.gen(id);
+      return { currentUser };
+    } else {
+      throw new AuthenticationError("UNAUTHENTICATED");
+    }
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log("jwt verification failed", err);
-    res.send(
-      `{"errors":[{"extensions":{"code":"UNAUTHENTICATED"},"message":"INVALID_JWT"}]}`
-    ); // make sure the client understands that there is some problem with authentication
-    throw new Error("you must be logged in"); // if context creation fails, stop every subsequent action
+    throw new AuthenticationError("UNAUTHENTICATED");
   }
 };
 
