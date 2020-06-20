@@ -6,6 +6,7 @@ const tables = {
       id serial NOT NULL,
       spotify_profile_id text NOT NULL,
       spotify_access_token text NOT NULL,
+      spotify_refresh_token text NOT NULL,
       money numeric,
       datetime timestamp with time zone NOT NULL,
       PRIMARY KEY (id)
@@ -62,7 +63,7 @@ const tables = {
           REFERENCES public.bet (id) MATCH SIMPLE
           ON UPDATE NO ACTION
           ON DELETE NO ACTION
-  )`
+  )`,
 };
 
 const reportError = (error, table) => {
@@ -76,12 +77,12 @@ const reportError = (error, table) => {
 };
 
 const initializeDb = async () => {
-  for(const tableName in tables) {
+  for (const tableName in tables) {
     try {
       console.log(`try to initialze db.${tableName}`);
       await db.query(tables[tableName]);
       console.log(`...initialized db.${tableName}!`);
-    } catch(e) {
+    } catch (e) {
       reportError(e, tableName);
     }
   }
