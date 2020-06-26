@@ -1,16 +1,22 @@
-const { ApolloServer, gql } = require("apollo-server-express");
+const {
+  ApolloServer,
+  gql,
+  AuthenticationError,
+} = require("apollo-server-express");
 const express = require("express");
+const jwt = require("jsonwebtoken");
 
 const assignAuthRoutes = require("./util/auth");
-const createContext = require("./util/createContext");
 const Playlist = require("./classes/Playlist");
 const Artist = require("./classes/Artist");
 const Bet = require("./classes/Bet");
+const User = require("./classes/User");
 const makeEndedBetTransactions = require("./queries/makeEndedBetTransactions");
 const makeInvalidBetTransactions = require("./queries/makeInvalidBetTransactions");
 const makeUserBetTransactions = require("./queries/makeUserBetTransactions");
-const { createBet, joinBet } = require("./mutations");
+const { createBet, joinBet, jwtForRefreshToken } = require("./mutations");
 const initializeDb = require("./util/initializeDb");
+const { apiJwtSecret } = require("./config/keys");
 
 (async () => {
   await initializeDb();
@@ -39,9 +45,15 @@ const typeDefs = gql`
       spotifyUrl: String!
     ): CreateBetReturnType
     joinBet(betId: ID!, support: Boolean!, amount: Int!): JoinBetReturnType
+    jwtForRefreshToken(refreshToken: ID!): JwtForRefreshTokenResponse
     makeEndedBetTransactions(ids: [ID!]): Response!
     makeInvalidBetTransactions(ids: [ID!]): Response!
     makeUserBetTransactions(userId: ID): Response!
+  }
+  type JwtForRefreshTokenResponse {
+    success: Boolean!
+    jwt: String!
+    refreshToken: String!
   }
   type Response {
     success: Boolean!
@@ -118,37 +130,86 @@ const typeDefs = gql`
   }
 `;
 
+const protect = (currentUser) => {
+  if (!currentUser) {
+    throw new Error("UNAUTHENTICATED");
+  }
+};
+
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    currentUser: async (parent, args, { currentUser }) => currentUser,
-    playlists: async (parent, args, { currentUser }) =>
-      await Playlist.ofCurrentUser(currentUser),
-    artistsOfPlaylist: async (parent, { playlistId }, { currentUser }) =>
-      await Artist.artistsOfPlaylist(playlistId, currentUser),
-    artist: async (parent, { id }, { currentUser }) =>
-      await Artist.gen(id, currentUser),
-    bet: async (parent, { id }) => await Bet.gen(id),
-    allBets: async () => await Bet.allBets(),
+    currentUser: async (_, __, { currentUser }) => {
+      protect(currentUser);
+      return currentUser;
+    },
+    playlists: async (_, __, { currentUser }) => {
+      protect(currentUser);
+      return await Playlist.ofCurrentUser(currentUser);
+    },
+    artistsOfPlaylist: async (_, { playlistId }, { currentUser }) => {
+      protect(currentUser);
+      return await Artist.artistsOfPlaylist(playlistId, currentUser);
+    },
+    artist: async (_, { id }, { currentUser }) => {
+      protect(currentUser);
+      return await Artist.gen(id, currentUser);
+    },
+    bet: async (_, { id }, { currentUser }) => {
+      protect(currentUser);
+      return await Bet.gen(id);
+    },
+    allBets: async (_, __, { currentUser }) => {
+      protect(currentUser);
+      return await Bet.allBets();
+    },
   },
   Mutation: {
-    createBet: async (parent, args, { currentUser }) =>
-      await createBet(args, currentUser),
-    joinBet: async (parent, args, { currentUser }) =>
-      await joinBet(args, currentUser),
-    makeEndedBetTransactions: async (_, { ids }) =>
-      await makeEndedBetTransactions(ids),
-    makeInvalidBetTransactions: async (_, { ids }) =>
-      await makeInvalidBetTransactions(ids),
-    makeUserBetTransactions: async (_, { userId }, { currentUser }) =>
-      await makeUserBetTransactions(userId, currentUser),
+    createBet: async (_, args, { currentUser }) => {
+      protect(currentUser);
+      return await createBet(args, currentUser);
+    },
+    joinBet: async (_, args, { currentUser }) => {
+      protect(currentUser);
+      return await joinBet(args, currentUser);
+    },
+    makeEndedBetTransactions: async (_, { ids }, { currentUser }) => {
+      protect(currentUser);
+      return await makeEndedBetTransactions(ids);
+    },
+    makeInvalidBetTransactions: async (_, { ids }, { currentUser }) => {
+      protect(currentUser);
+      return await makeInvalidBetTransactions(ids);
+    },
+    makeUserBetTransactions: async (_, { userId }, { currentUser }) => {
+      protect(currentUser);
+      return await makeUserBetTransactions(userId, currentUser);
+    },
+    jwtForRefreshToken: async (_, args) => {
+      return await jwtForRefreshToken(args);
+    },
   },
 };
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: createContext,
+  context: async ({ req }) => {
+    const token =
+      req.headers.authorization &&
+      req.headers.authorization.replace("Bearer ", "");
+    try {
+      const { id } = jwt.verify(token, apiJwtSecret);
+      if (id) {
+        const currentUser = await User.gen(id);
+        return { currentUser };
+      } else {
+        return { currentUser: null };
+      }
+    } catch (err) {
+      return { currentUser: null };
+    }
+  },
 });
 
 server.applyMiddleware({ app, path: "/" });

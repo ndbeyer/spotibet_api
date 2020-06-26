@@ -3,7 +3,6 @@ const queryString = require("querystring");
 const bodyParser = require("body-parser");
 const { db } = require("../db");
 const jwt = require("jsonwebtoken");
-
 const {
   spotifyClientId,
   spotifyClientSecret,
@@ -15,22 +14,6 @@ const handleError = (error, response) => {
     success: false,
     error,
   });
-};
-
-const getProfile = async (spotifyAccessToken) => {
-  const profileResponse = await fetch("https://api.spotify.com/v1/me", {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${spotifyAccessToken}`,
-    },
-  });
-  if (profileResponse.status !== 200) {
-    return {
-      error: `PROFILE_RESPONSE_ERROR`,
-    };
-  }
-  const { id: spotifyProfileId } = await profileResponse.json();
-  return await { spotifyProfileId };
 };
 
 const assignAuthRoutes = (app) => {
@@ -77,10 +60,16 @@ const assignAuthRoutes = (app) => {
         refresh_token: spotifyRefreshToken,
       } = await tokenResponse.json();
 
-      const { error, spotifyProfileId } = await getProfile(spotifyAccessToken);
-      if (error) {
-        handleError(error, response);
+      const profileResponse = await fetch("https://api.spotify.com/v1/me", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${spotifyAccessToken}`,
+        },
+      });
+      if (profileResponse.status !== 200) {
+        handleError("PROFILE_RESPONSE_ERROR", response);
       }
+      const { id: spotifyProfileId } = await profileResponse.json();
 
       const userExistsRes = await db.query(
         `SELECT id FROM public.user WHERE spotify_profile_id = $1`,
@@ -122,60 +111,6 @@ const assignAuthRoutes = (app) => {
     } catch (e) {
       return response.json({ success: false, error: e });
     }
-  });
-
-  app.post("/refresh-login", async (req, res) => {
-    const { refreshToken } = req.body;
-    const refreshResponse = await fetch(
-      "https://accounts.spotify.com/api/token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: queryString.stringify({
-          grant_type: "refresh_token",
-          refresh_token: refreshToken,
-          client_id: spotifyClientId,
-          client_secret: spotifyClientSecret,
-        }),
-      }
-    );
-    if (refreshResponse.status !== 200) {
-      handleError("REFRESH_RESPONSE_ERROR", res);
-    }
-    const {
-      access_token: spotifyAccessToken,
-      refresh_token: spotifyRefreshToken,
-    } = await refreshResponse.json();
-
-    const { error, spotifyProfileId } = await getProfile(spotifyAccessToken);
-    if (error) {
-      handleError(error, res);
-    }
-
-    const userExistsRes = await db.query(
-      `SELECT id FROM public.user WHERE spotify_profile_id = $1`,
-      [spotifyProfileId]
-    );
-
-    // user does not exist
-    if (!userExistsRes.rows.length) {
-      handleError("USER_DOES_NOT_EXIST", res);
-    }
-
-    // user already exists
-    const alreadyExistentUserId = userExistsRes.rows[0].id;
-    await db.query(
-      "UPDATE public.user SET spotify_access_token = $1, spotify_refresh_token =$2",
-      [spotifyAccessToken, spotifyRefreshToken]
-    );
-    const token = jwt.sign({ id: alreadyExistentUserId }, apiJwtSecret);
-    return res.json({
-      success: true,
-      jwt: token,
-      refreshToken: spotifyRefreshToken,
-    });
   });
 
   app.get("*", (_, res) =>

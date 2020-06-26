@@ -1,7 +1,9 @@
-const createBet = require("./createBet")
-const joinBet = require("./joinBet")
+const createBet = require("./createBet");
+const joinBet = require("./joinBet");
+const jwtForRefreshToken = require("./jwtForRefreshToken");
 
 module.exports = {
   createBet,
-  joinBet
+  joinBet,
+  jwtForRefreshToken,
 };
