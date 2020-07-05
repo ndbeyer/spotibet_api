@@ -52,6 +52,15 @@ module.exports = class Artist {
     ).rows.map(({ id }) => id);
     return await Bet.genMult(artistBetIdsDb);
   }
+
+  async listeners() {
+    return [];
+    // TODO: check last fetched entry in listeners for artist
+    // TOOD: if last fetched is > 24h, refetch from statServer and save in listeners
+    // TODO: then resolve data from listeners
+    // fetch monthlyListeners for that artist from statserver
+    // write monthlyListeners into api-database
+  }
 };
 
 // require other classes after exports to avoid circular dependencies

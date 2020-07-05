@@ -10,6 +10,7 @@ const User = require("./classes/User");
 const makeEndedBetTransactions = require("./mutations/makeEndedBetTransactions");
 const makeInvalidBetTransactions = require("./mutations/makeInvalidBetTransactions");
 const makeUserBetTransactions = require("./mutations/makeUserBetTransactions");
+const updateArtistListeners = require("./mutations/updateArtistListeners");
 const { createBet, joinBet, jwtForRefreshToken } = require("./mutations");
 const initializeDb = require("./util/initializeDb");
 const { apiJwtSecret } = require("./config/keys");
@@ -45,6 +46,7 @@ const typeDefs = gql`
     makeEndedBetTransactions(ids: [ID!]): Response!
     makeInvalidBetTransactions(ids: [ID!]): Response!
     makeUserBetTransactions(userId: ID): Response!
+    updateArtistListeners(artistId: ID!): Response!
   }
   type JwtForRefreshTokenResponse {
     success: Boolean!
@@ -183,6 +185,10 @@ const resolvers = {
     },
     jwtForRefreshToken: async (_, args) => {
       return await jwtForRefreshToken(args);
+    },
+    updateArtistListeners: async (_, args, currentUser) => {
+      protect(currentUser);
+      return await updateArtistListeners(args);
     },
   },
 };

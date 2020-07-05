@@ -64,6 +64,16 @@ const tables = {
           ON UPDATE NO ACTION
           ON DELETE NO ACTION
   )`,
+  listeners: `CREATE TABLE public.listeners
+  (
+    id serial NOT NULL,
+    artist_id text NOT NULL,
+    spotify_url text NOT NULL,
+    monthly_listeners int,
+    fetch_date_start timestamp NOT NULL,
+    fetch_date_end timestamp NOT NULL,
+    PRIMARY KEY (id)
+  )`,
 };
 
 const reportError = (error, table) => {
