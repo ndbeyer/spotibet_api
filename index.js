@@ -145,7 +145,7 @@ const resolvers = {
     },
     artistsOfPlaylist: async (_, { playlistId }, { currentUser }) => {
       protect(currentUser);
-      return await Artist.artistsOfPlaylist(playlistId, currentUser);
+      return await Playlist.artistsOfPlaylist(playlistId, currentUser);
     },
     artist: async (_, { id }, { currentUser }) => {
       protect(currentUser);

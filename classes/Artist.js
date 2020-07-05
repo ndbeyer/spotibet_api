@@ -1,5 +1,4 @@
 const getSpotifyData = require("../util/getSpotifyData");
-const lodash = require("lodash");
 const { db } = require("../db");
 const getMonthlyListeners = require("../util/getMonthlyListeners");
 // require other classes after exports to avoid circular dependencies
@@ -38,19 +37,6 @@ module.exports = class Artist {
           spotifyUrl: external_urls ? external_urls.spotify : null,
         })
     );
-  }
-
-  static async artistsOfPlaylist(playlistId, currentUser) {
-    const artistIds = (
-      await getSpotifyData(currentUser, "playlistTracks", playlistId)
-    ).items
-      .map((item) => item.track.artists)
-      .reduce((a, b) => [...a, ...b])
-      .sort((a, b) => (b.name > a.name ? -1 : 1))
-      .map(({ id }) => id);
-
-    const uniqueArtistIds = lodash.uniq(artistIds);
-    return await Artist.genMult(uniqueArtistIds, currentUser);
   }
 
   async monthlyListeners() {
