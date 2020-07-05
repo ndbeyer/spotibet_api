@@ -23,7 +23,6 @@ const getEndedBets = async (input) => {
 const makeEndedBetTransactions = async (input) => {
   try {
     const endedBets = await getEndedBets(input);
-    console.log("endedBets", endedBets);
     if (!endedBets.length) {
       return { success: true };
     }
