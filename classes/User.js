@@ -18,11 +18,11 @@ module.exports = class User {
   static async gen(id) {
     const userIdDb = User.decryptId(id);
     const res = await db.query("SELECT * FROM public.user WHERE id = $1", [
-      userIdDb
+      userIdDb,
     ]);
     const user = new User({
       ...res.rows[0],
-      id: User.encryptDbId(userIdDb)
+      id: User.encryptDbId(userIdDb),
     });
     return user;
   }
@@ -43,7 +43,7 @@ module.exports = class User {
     const userIdDb = User.decryptId(this.id);
     const rows = (
       await db.query(`SELECT id FROM public.transaction WHERE user_id = $1`, [
-        userIdDb
+        userIdDb,
       ])
     ).rows;
     const ids = rows.map(({ id }) => Transaction.encryptDbId(id));
@@ -54,4 +54,4 @@ module.exports = class User {
 // require other classes after exports to avoid circular dependencies
 const Bet = require("./Bet");
 const Transaction = require("./Transaction");
-const makeUserBetTransactions = require("../queries/makeUserBetTransactions");
+const makeUserBetTransactions = require("../mutations/makeUserBetTransactions");

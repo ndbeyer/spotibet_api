@@ -1,8 +1,4 @@
-const {
-  ApolloServer,
-  gql,
-  AuthenticationError,
-} = require("apollo-server-express");
+const { ApolloServer, gql } = require("apollo-server-express");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 
@@ -11,9 +7,9 @@ const Playlist = require("./classes/Playlist");
 const Artist = require("./classes/Artist");
 const Bet = require("./classes/Bet");
 const User = require("./classes/User");
-const makeEndedBetTransactions = require("./queries/makeEndedBetTransactions");
-const makeInvalidBetTransactions = require("./queries/makeInvalidBetTransactions");
-const makeUserBetTransactions = require("./queries/makeUserBetTransactions");
+const makeEndedBetTransactions = require("./mutations/makeEndedBetTransactions");
+const makeInvalidBetTransactions = require("./mutations/makeInvalidBetTransactions");
+const makeUserBetTransactions = require("./mutations/makeUserBetTransactions");
 const { createBet, joinBet, jwtForRefreshToken } = require("./mutations");
 const initializeDb = require("./util/initializeDb");
 const { apiJwtSecret } = require("./config/keys");
