@@ -86,6 +86,7 @@ const typeDefs = gql`
     spotifyUrl: String
     monthlyListeners: Int
     joinableBets: [Bet!]
+    listeners: [ListenerHistoryItem!]!
   }
   type Bet {
     id: ID!
@@ -111,6 +112,11 @@ const typeDefs = gql`
     userId: ID!
     type: TransactionType!
     datetime: String!
+  }
+  type ListenerHistoryItem {
+    id: ID!
+    monthlyListeners: Int!
+    fetchDateEnd: String!
   }
   enum TransactionType {
     PLUS

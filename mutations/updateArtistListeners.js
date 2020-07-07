@@ -12,11 +12,11 @@ const updateArtistListeners = async ({ artistId }) => {
       )
     ).rows[0];
 
-    let lastEntryFetchDateEmd;
+    let lastEntryFetchDateEnd;
     if (result) {
-      lastEntryFetchDateEmd = result.fetchDateEnd;
+      lastEntryFetchDateEnd = result.fetchDateEnd;
       const lastEntryOutdated =
-        differenceInMilliseconds(new Date(), new Date(lastEntryFetchDateEmd)) >=
+        differenceInMilliseconds(new Date(), new Date(lastEntryFetchDateEnd)) >=
         24 * 60 * 60 * 1000;
       if (!lastEntryOutdated) {
         return { success: true };
@@ -42,7 +42,7 @@ const updateArtistListeners = async ({ artistId }) => {
       newEntries = payload;
     } else {
       newEntries = payload.filter(
-        (entry) => entry.fetch_date_end > lastEntryFetchDateEmd
+        (entry) => entry.fetch_date_end > lastEntryFetchDateEnd
       );
     }
 

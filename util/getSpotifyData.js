@@ -20,6 +20,7 @@ const fetch = async (spotify_access_token, url) => {
 
 const getSpotifyData = async (currentUser, type, identifier) => {
   const { spotify_access_token, spotify_profile_id } = currentUser;
+  // TODO: an error should be thrown when potify_access_token or spotify_profile_id are undefined
   switch (type) {
     case "artists": {
       const artistIds = identifier;

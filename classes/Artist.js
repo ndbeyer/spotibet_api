@@ -1,6 +1,7 @@
 const getSpotifyData = require("../util/getSpotifyData");
 const { db } = require("../db");
 const getMonthlyListeners = require("../util/getMonthlyListeners");
+const updateArtistListeners = require("../mutations/updateArtistListeners");
 // require other classes after exports to avoid circular dependencies
 
 module.exports = class Artist {
@@ -54,12 +55,14 @@ module.exports = class Artist {
   }
 
   async listeners() {
-    return [];
-    // TODO: check last fetched entry in listeners for artist
-    // TOOD: if last fetched is > 24h, refetch from statServer and save in listeners
-    // TODO: then resolve data from listeners
-    // fetch monthlyListeners for that artist from statserver
-    // write monthlyListeners into api-database
+    await updateArtistListeners({ artistId: this.id });
+    const rows = (
+      await db.query(
+        `SELECT id, monthly_listeners AS "monthlyListeners", fetch_date_end::text AS "fetchDateEnd" FROM public.listeners WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
+        [this.id]
+      )
+    ).rows;
+    return rows; // TODO: encode db ids? Paulo said this might not be necessary
   }
 };
 
