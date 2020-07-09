@@ -64,7 +64,7 @@ const tables = {
           ON UPDATE NO ACTION
           ON DELETE NO ACTION
   )`,
-  listeners: `CREATE TABLE public.listeners
+  monthly_listeners_history: `CREATE TABLE public.monthly_listeners_history
   (
     id serial NOT NULL,
     artist_id text NOT NULL,

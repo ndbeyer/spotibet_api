@@ -54,11 +54,11 @@ module.exports = class Artist {
     return await Bet.genMult(artistBetIdsDb);
   }
 
-  async listeners() {
+  async monthlyListenersHistory() {
     await updateArtistListeners({ artistId: this.id });
     const rows = (
       await db.query(
-        `SELECT id, monthly_listeners AS "monthlyListeners", fetch_date_end::text AS "fetchDateEnd" FROM public.listeners WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
+        `SELECT id, monthly_listeners AS "monthlyListeners", fetch_date_end::text AS "fetchDateEnd" FROM public.monthly_listeners_history WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
         [this.id]
       )
     ).rows;

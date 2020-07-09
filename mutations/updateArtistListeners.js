@@ -7,7 +7,7 @@ const updateArtistListeners = async ({ artistId }) => {
   try {
     const result = (
       await db.query(
-        `SELECT fetch_date_end::text AS "fetchDateEnd" FROM public.listeners WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
+        `SELECT fetch_date_end::text AS "fetchDateEnd" FROM public.monthly_listeners_history WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
         [artistId]
       )
     ).rows[0];
@@ -56,7 +56,7 @@ const updateArtistListeners = async ({ artistId }) => {
           monthly_listeners,
         }) => {
           await db.query(
-            "INSERT INTO public.listeners (artist_id, spotify_url, fetch_date_start, fetch_date_end , monthly_listeners) VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO public.monthly_listeners_history (artist_id, spotify_url, fetch_date_start, fetch_date_end , monthly_listeners) VALUES ($1, $2, $3, $4, $5)",
             [
               artist_id,
               spotify_url,
