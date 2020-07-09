@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 const { statServerSecret, statServerURI } = require("../config/keys");
 const { differenceInMilliseconds } = require("date-fns");
 
-const updateArtistListeners = async ({ artistId }) => {
+const syncArtistMonthlyListenersHistory = async ({ artistId }) => {
   try {
     const result = (
       await db.query(
@@ -74,4 +74,4 @@ const updateArtistListeners = async ({ artistId }) => {
   }
 };
 
-module.exports = updateArtistListeners;
+module.exports = syncArtistMonthlyListenersHistory;

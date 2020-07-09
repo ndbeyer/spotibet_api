@@ -1,7 +1,7 @@
 const getSpotifyData = require("../util/getSpotifyData");
 const { db } = require("../db");
 const getMonthlyListeners = require("../util/getMonthlyListeners");
-const updateArtistListeners = require("../mutations/updateArtistListeners");
+const syncArtistMonthlyListenersHistory = require("../mutations/syncArtistMonthlyListenersHistory");
 // require other classes after exports to avoid circular dependencies
 
 module.exports = class Artist {
@@ -55,7 +55,7 @@ module.exports = class Artist {
   }
 
   async monthlyListenersHistory() {
-    await updateArtistListeners({ artistId: this.id });
+    await syncArtistMonthlyListenersHistory({ artistId: this.id });
     const rows = (
       await db.query(
         `SELECT id, monthly_listeners AS "monthlyListeners", fetch_date_end::text AS "fetchDateEnd" FROM public.monthly_listeners_history WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
