@@ -58,7 +58,15 @@ module.exports = class Artist {
     await syncArtistMonthlyListenersHistory({ artistId: this.id });
     const rows = (
       await db.query(
-        `SELECT id, monthly_listeners AS "monthlyListeners", fetch_date_end::text AS "fetchDateEnd" FROM public.monthly_listeners_history WHERE artist_id = $1 ORDER BY fetch_date_end DESC`,
+        `SELECT * FROM 
+          (SELECT 
+            EXTRACT(DOW FROM fetch_date_end) AS dow,
+            id, monthly_listeners AS "monthlyListeners", fetch_date_end::text AS "dateTime" 
+            FROM public.monthly_listeners_history 
+            WHERE artist_id = $1 
+            ORDER BY fetch_date_end ASC
+          ) AS sub
+        WHERE dow = 4`,
         [this.id]
       )
     ).rows;

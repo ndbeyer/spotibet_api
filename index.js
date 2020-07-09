@@ -116,7 +116,7 @@ const typeDefs = gql`
   type MonthlyListenersHistoryItem {
     id: ID!
     monthlyListeners: Int!
-    fetchDateEnd: String!
+    dateTime: String!
   }
   enum TransactionType {
     PLUS

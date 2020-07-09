@@ -27,7 +27,6 @@ const getInvalidBets = async (input) => {
 const makeInvalidBetTransactions = async (input) => {
   try {
     const invalidBets = await getInvalidBets(input);
-    console.log("invalidBets", invalidBets);
     if (!invalidBets.length) {
       return { success: true };
     }
