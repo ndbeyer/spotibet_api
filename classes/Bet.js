@@ -125,18 +125,12 @@ module.exports = class Bet {
       ).rows[0].count;
       const betIsValid = Number(count) === 2;
       if (!betIsValid) {
-        // if(!this.transactions) {
-        //   await makeInvalidBetTransactions(betIdDb)
-        // }
         return "INVALID";
       }
       if (betIsValid && new Date() < new Date(this.endDate)) {
         return "RUNNING";
       }
       if (betIsValid && new Date() >= new Date(this.endDate)) {
-        // if (!this.transactions) {
-        //   await makeEndedBetTransactions(betIdDb);
-        // }
         return "ENDED";
       }
     }

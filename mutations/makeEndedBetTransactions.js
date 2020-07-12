@@ -8,8 +8,8 @@ const getEndedBets = async (input) => {
   return (
     await db.query(
       `SELECT 
-        artist_id AS artistId, 
-        end_date::text AS endDate
+        artist_id AS "artistId", 
+        end_date::text AS "endDate"
         FROM public.bet 
         WHERE transactions = false 
         AND (now() at time zone 'utc') > end_date ${
