@@ -82,33 +82,35 @@ module.exports = class Bet {
     return Bet.genMult(betIdsDb);
   }
 
-  async pro() {
+  async supportersAmount() {
     const betDbId = Bet.decryptId(this.id);
-    const pro = (
+    const supportersAmount = (
       await db.query(
         `SELECT SUM(amount) FROM public.participant WHERE bet_id =$1 AND support IS TRUE`,
         [betDbId]
       )
     ).rows[0].sum;
-    return Number(pro);
+    return Number(supportersAmount);
   }
 
-  async contra() {
+  async contradictorsAmount() {
     const betDbId = Bet.decryptId(this.id);
-    const contra = (
+    const contradictorsAmount = (
       await db.query(
         `SELECT SUM(amount) FROM public.participant WHERE bet_id =$1 AND support IS FALSE`,
         [betDbId]
       )
     ).rows[0].sum;
-    return Number(contra);
+    return Number(contradictorsAmount);
   }
 
   async quote() {
-    const pro = await this.pro();
-    const contra = await this.contra();
-    const total = pro + contra;
-    const proPercent = (pro / total && (pro / total).toFixed(2)) || null;
+    const supportersAmount = await this.supportersAmount();
+    const contradictorsAmount = await this.contradictorsAmount();
+    const total = supportersAmount + contradictorsAmount;
+    const proPercent =
+      (supportersAmount / total && (supportersAmount / total).toFixed(2)) ||
+      null;
     return proPercent;
   }
 

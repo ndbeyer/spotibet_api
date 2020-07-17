@@ -97,8 +97,8 @@ const typeDefs = gql`
     endDate: String!
     artist: Artist!
     quote: Float
-    pro: Int!
-    contra: Int!
+    supportersAmount: Int!
+    contradictorsAmount: Int!
     currentUserAmount: Int
     currentUserSupports: Boolean
     status: BetStatus!
