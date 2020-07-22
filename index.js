@@ -75,7 +75,7 @@ const typeDefs = gql`
   type Playlist {
     id: ID!
     name: String!
-    image: String!
+    image: String
   }
   type Artist {
     id: ID!
