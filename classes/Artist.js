@@ -25,6 +25,7 @@ const addArtistsToStatServer = async (artists) => {
     });
     if (res.status !== 200) {
       console.log("...addArtistsToStatServer: res.status !== 200");
+      console.log("res", res);
       return;
     }
     const { success, error } = await res.json();
