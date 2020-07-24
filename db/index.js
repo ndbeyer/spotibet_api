@@ -1,10 +1,9 @@
-const keys = require("../config/keys");
 const { Pool } = require("pg");
 
 const pool = new Pool(
   process.env.ENVIRONMENT === "production"
     ? {
-        connectionString: keys.dbUrl,
+        connectionString: process.env.DATABASE_URL, // will be injected from heroku
       }
     : {
         port: 5432,

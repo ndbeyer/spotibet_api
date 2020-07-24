@@ -18,7 +18,10 @@
     "pg": "^7.12.1"
   },
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "deploy": "git push heroku master",
+    "log": "heroku logs --tail",
+    "login": "heroku login"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
