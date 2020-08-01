@@ -4,6 +4,16 @@
 2. get rid of `postmaster.pid` file via `rm /usr/local/var/postgres/postmaster.pid` adjust path accordingly to your installation directory
 3. brew services start postgresql
 
+### If you don't seem to have a db connection
+
+```
+error: could not connect to server: could not connect to server: No such file or directory
+        Is the server running locally and accepting
+        connections on Unix domain socket "/tmp/.s.PGSQL.5432"?
+```
+
+brew services start postgresql
+
 ### Connect to your local databases
 
 - if you want to connect e.g. pgadmin to your `cinuru_local_dev`
