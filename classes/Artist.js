@@ -33,7 +33,6 @@ const addArtistsToStatServer = async (artists) => {
       console.log("...addArtistsToStatServer: success = false");
       return;
     }
-    console.log(`Added ${artists.length} artists to statServer`);
   } catch (e) {
     console.log("...addArtistsToStatServer: catch error", e);
   }
