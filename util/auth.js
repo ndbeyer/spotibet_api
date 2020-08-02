@@ -29,7 +29,7 @@ const assignAuthRoutes = (app) => {
       const { code, code_verifier } = request.body;
       const { os } = request.query;
       if (!code || !code_verifier || !os) {
-        handleError("MISSING_INPUTS", response);
+        return handleError("MISSING_INPUTS", response);
       }
       // get access and refresh tokens
       const tokenResponse = await fetch(
@@ -46,20 +46,22 @@ const assignAuthRoutes = (app) => {
             redirect_uri:
               os === "ios"
                 ? "com.spotibet:/oauthredirect"
-                : "com.spotibet://oauthredirect",
+                : "com.spotibet:/oauthredirect",
             client_id: spotifyClientId,
             client_secret: spotifyClientSecret,
           }),
         }
       );
+
       if (tokenResponse.status !== 200) {
-        handleError("TOKEN_RESPONSE_ERROR", response);
+        return handleError("TOKEN_RESPONSE_ERROR", response);
       }
       const {
         access_token: spotifyAccessToken,
         refresh_token: spotifyRefreshToken,
       } = await tokenResponse.json();
 
+      console.log({ spotifyAccessToken, spotifyRefreshToken });
       const profileResponse = await fetch("https://api.spotify.com/v1/me", {
         method: "GET",
         headers: {
@@ -67,15 +69,17 @@ const assignAuthRoutes = (app) => {
         },
       });
       if (profileResponse.status !== 200) {
-        handleError("PROFILE_RESPONSE_ERROR", response);
+        return handleError("PROFILE_RESPONSE_ERROR", response);
       }
       const { id: spotifyProfileId } = await profileResponse.json();
 
+      console.log({ spotifyProfileId });
       const userExistsRes = await db.query(
         `SELECT id FROM public.user WHERE spotify_profile_id = $1`,
         [spotifyProfileId]
       );
 
+      console.log({ userExistsRes });
       // new user
       if (!userExistsRes.rows.length) {
         const newUserRes = await db.query(
@@ -87,6 +91,7 @@ const assignAuthRoutes = (app) => {
         );
         const newUserId = newUserRes.rows[0].id;
         const token = jwt.sign({ id: newUserId }, apiJwtSecret);
+        console.log("new user");
         return response.json({
           success: true,
           newUser: true, // TODO: handle new user in the frontend
@@ -97,11 +102,13 @@ const assignAuthRoutes = (app) => {
 
       // user already exists
       const alreadyExistentUserId = userExistsRes.rows[0].id;
+      console.log({ alreadyExistentUserId });
       await db.query(
         "UPDATE public.user SET spotify_access_token = $1, spotify_refresh_token =$2",
         [spotifyAccessToken, spotifyRefreshToken]
       );
       const token = jwt.sign({ id: alreadyExistentUserId }, apiJwtSecret);
+      console.log("user already exists");
       return response.json({
         success: true,
         newUser: false, // TODO: handle already existent user in the frontend
@@ -109,6 +116,7 @@ const assignAuthRoutes = (app) => {
         refreshToken: spotifyRefreshToken,
       });
     } catch (e) {
+      console.log("run api catchblock with error", e);
       return response.json({ success: false, error: e });
     }
   });
