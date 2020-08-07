@@ -10,6 +10,7 @@ const {
 } = require("../config/keys");
 
 const handleError = (error, response) => {
+  console.log("handleError", error);
   response.json({
     success: false,
     error,
@@ -47,8 +48,8 @@ const assignAuthRoutes = (app) => {
             grant_type: "authorization_code",
             redirect_uri:
               os === "ios"
-                ? "com.spotibet:/oauthredirect"
-                : "com.spotibet:/oauthredirect",
+                ? "io.identityserver.demo:/oauthredirect"
+                : "io.identityserver.demo:/oauthredirect",
             client_id: spotifyClientId,
             client_secret: spotifyClientSecret,
           }),
