@@ -10,7 +10,7 @@ const {
 } = require("../config/keys");
 
 const handleError = (error, response) => {
-  return response.json({
+  response.json({
     success: false,
     error,
   });
@@ -27,9 +27,11 @@ const assignAuthRoutes = (app) => {
   app.post("/get-jwt-for-auth-code", async (request, response) => {
     try {
       const { code, code_verifier } = request.body;
+      console.log({ code, code_verifier });
       const { os } = request.query;
       if (!code || !code_verifier || !os) {
-        return handleError("MISSING_INPUTS", response);
+        handleError("MISSING_INPUTS", response);
+        return;
       }
       // get access and refresh tokens
       const tokenResponse = await fetch(
@@ -54,7 +56,8 @@ const assignAuthRoutes = (app) => {
       );
 
       if (tokenResponse.status !== 200) {
-        return handleError("TOKEN_RESPONSE_ERROR", response);
+        handleError("TOKEN_RESPONSE_ERROR", response);
+        return;
       }
       const {
         access_token: spotifyAccessToken,
@@ -69,7 +72,8 @@ const assignAuthRoutes = (app) => {
         },
       });
       if (profileResponse.status !== 200) {
-        return handleError("PROFILE_RESPONSE_ERROR", response);
+        handleError("PROFILE_RESPONSE_ERROR", response);
+        return;
       }
       const { id: spotifyProfileId } = await profileResponse.json();
 
