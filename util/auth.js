@@ -28,9 +28,8 @@ const assignAuthRoutes = (app) => {
   app.post("/get-jwt-for-auth-code", async (request, response) => {
     try {
       const { code, code_verifier } = request.body;
-      const { os } = request.query;
-      console.log({ code, code_verifier, os });
-      if (!code || !code_verifier || !os) {
+      console.log({ code, code_verifier });
+      if (!code || !code_verifier) {
         handleError("MISSING_INPUTS", response);
         return;
       }
@@ -46,10 +45,7 @@ const assignAuthRoutes = (app) => {
             code,
             code_verifier,
             grant_type: "authorization_code",
-            redirect_uri:
-              os === "ios"
-                ? "io.identityserver.demo:/oauthredirect"
-                : "io.identityserver.demo:/oauthredirect",
+            redirect_uri: "com.spotibet:/oauthredirect",
             client_id: spotifyClientId,
             client_secret: spotifyClientSecret,
           }),
