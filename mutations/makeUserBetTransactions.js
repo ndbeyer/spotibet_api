@@ -14,7 +14,7 @@ const makeUserBetTransactions = async (userId, currentUser) => {
     ).rows.map(({ bet_id }) => bet_id);
     await Promise.all([
       await makeEndedBetTransactions(betIds),
-      await makeInvalidBetTransactions(betIds)
+      await makeInvalidBetTransactions(betIds),
     ]);
 
     return { success: true };
