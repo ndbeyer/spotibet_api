@@ -78,10 +78,10 @@ const makeEndedBetTransactions = async (input) => {
 
           const lostMoney = loosingParticipants
             .map(({ amount }) => amount)
-            .reduce((a, b) => a + b);
+            .reduce((a, b) => a + b, 0);
           const allWinnerAmounts = winningParticipants
             .map(({ amount }) => amount)
-            .reduce((a, b) => a + b);
+            .reduce((a, b) => a + b, 0);
 
           const serviceFee = lostMoney * 0.1;
           const lostMoneyToDistribute = lostMoney - serviceFee;
