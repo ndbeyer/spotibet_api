@@ -8,6 +8,7 @@ const getEndedBets = async (input) => {
   return (
     await db.query(
       `SELECT 
+        id,
         artist_id AS "artistId", 
         end_date::text AS "endDate"
         FROM public.bet 
