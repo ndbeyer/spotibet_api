@@ -25,6 +25,16 @@ const joinBet = async ({ betId, support, amount }, currentUser) => {
     await db.query(`SELECT money FROM public.user WHERE id = $1`, [userIdDb])
   ).rows[0].money;
   if (moneyBefore < amount) throw new ApolloError("NOT_ENOUGH_MONEY");
+  // don't allow support and contradiction of same bet
+  const alreadyJoinedRows = (
+    await db.query(
+      `SELECT support from public.participant WHERE bet_id = $1 and user_id = $2`,
+      [betIdDb, userIdDb]
+    )
+  ).rows;
+  if (alreadyJoinedRows.length && alreadyJoinedRows[0].support !== support) {
+    throw new ApolloError("NO_SUPPORT_AND_CONTRADICTION_OF_SAME_BET");
+  }
   // subtract money from currentUser
   await db.query(`UPDATE public.user SET money = money - $1 WHERE id = $2`, [
     amount,
