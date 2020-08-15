@@ -1,3 +1,5 @@
+const axios = require("axios");
+const keys = require("../config/keys");
 const { encrypt, decrypt } = require("../util/encryptDecrypt");
 const { db } = require("../db");
 
@@ -164,6 +166,40 @@ module.exports = class Bet {
       )
     ).rows[0];
     return entry ? entry.support : null;
+  }
+
+  async listenersAtStartDate() {
+    const betIdDb = Bet.decryptId(this.id);
+    const row = (
+      await db.query(
+        'SELECT artist_id AS "artistId", listeners_at_start_date AS "listenersAtStartDate", start_date::text AS "startDate" FROM public.bet WHERE id = $1',
+        [betIdDb]
+      )
+    ).rows[0];
+    if (!row.listenersAtStartDate) {
+      // get the listeners from statServer
+      const { data } = await axios.get(
+        `${keys.statServerURI}/artist?id=${row.artistId}&date=${row.startDate}`,
+        {
+          headers: {
+            Authorization: keys.statServerSecret,
+          },
+        }
+      );
+      const listenersAtStartDate =
+        data.payload[0] && data.payload[0].monthly_listeners;
+      if (!listenersAtStartDate) {
+        return null;
+      } else {
+        await db.query(
+          "UPDATE public.bet SET listeners_at_start_date = $1 WHERE id = $2",
+          [listenersAtStartDate, betIdDb]
+        );
+        return listenersAtStartDate;
+      }
+    } else {
+      return row.listenersAtStartDate;
+    }
   }
 };
 
