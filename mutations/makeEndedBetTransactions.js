@@ -32,7 +32,7 @@ const makeEndedBetTransactions = async (input) => {
     for (const artistId in betsPerArtist) {
       // eslint-disable-next-line no-await-in-loop
       const { data } = await axios.get(
-        `${keys.statServerURI}/artist:${artistId}`,
+        `${keys.statServerURI}/artist?id=${artistId}`,
         {
           headers: {
             Authorization: keys.statServerSecret,

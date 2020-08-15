@@ -31,6 +31,7 @@ CREATE TABLE public.bet
     end_date timestamp NOT NULL,
     listeners_at_end_date integer,
     transactions boolean NOT NULL,
+    listeners_at_start_date integer,
     PRIMARY KEY (id),
     FOREIGN KEY (user_id)
         REFERENCES public.user (id) MATCH SIMPLE

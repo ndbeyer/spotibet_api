@@ -23,7 +23,7 @@ const syncArtistMonthlyListenersHistory = async ({ artistId }) => {
       }
     }
 
-    const response = await fetch(`${statServerURI}/artist:${artistId}`, {
+    const response = await fetch(`${statServerURI}/artist?id=${artistId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -32,7 +32,7 @@ const syncArtistMonthlyListenersHistory = async ({ artistId }) => {
     });
 
     if (response.status !== 200) {
-      throw new Error(`Could not reach ${statServerURI}/artist:${artistId}`); // TODO: systematize Apollo Errors
+      throw new Error(`Could not reach ${statServerURI}/artist?id=${artistId}`); // TODO: systematize Apollo Errors
     }
     const { payload } = await response.json();
 

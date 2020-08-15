@@ -103,6 +103,7 @@ const typeDefs = gql`
     currentUserSupports: Boolean
     status: BetStatus!
     listenersAtEndDate: Int
+    listenersAtStartDate: Int
     transactions: Boolean!
   }
   type Transaction {
@@ -206,6 +207,14 @@ const server = new ApolloServer({
     const token =
       req.headers.authorization &&
       req.headers.authorization.replace("Bearer ", "");
+    if (process.env.ENVIRONMENT !== "production") {
+      // allow to login as certain user by only providing test:userId string as Bearer
+      if (token.includes("test")) {
+        const userId = Number(token.replace("test:", ""));
+        const currentUser = await User.gen(userId);
+        return { currentUser };
+      }
+    }
     try {
       const { id } = jwt.verify(token, apiJwtSecret);
       if (id) {
