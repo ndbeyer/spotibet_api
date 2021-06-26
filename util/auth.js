@@ -36,9 +36,10 @@ const assignAuthRoutes = (app) => {
   });
 
   app.post("/get-jwt-for-auth-code", async (request, response) => {
-    console.log(`hit /get-jwt-for-auth-code with ${code} and ${code_verifier}`)
+    console.log(`hit /get-jwt-for-auth-code`)
     try {
       const { code, code_verifier } = request.body;
+      console.log(`with ${code} and ${code_verifier}`)
       if (!code || !code_verifier) {
         handleError("MISSING_INPUTS", response);
         return;
