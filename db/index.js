@@ -3,15 +3,18 @@ const { Pool } = require("pg");
 const pool = new Pool(
   process.env.ENVIRONMENT === "production"
     ? {
-        connectionString: process.env.DATABASE_URL, // will be injected from heroku
-      }
+      connectionString: process.env.DATABASE_URL, // will be injected from heroku
+      ssl: {
+        rejectUnauthorized: false
+      },
+    }
     : {
-        port: 5432,
-        host: "localhost",
-        database: "test",
-        user: "andreasbeyer",
-        password: "",
-      }
+      port: 5432,
+      host: "localhost",
+      database: "audioshares_api",
+      user: "andreasbeyer",
+      password: "",
+    }
 );
 
 const dbAdapter = {

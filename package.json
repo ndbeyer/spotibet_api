@@ -2,6 +2,9 @@
   "name": "api",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": "16.3.0"
+  },
   "license": "MIT",
   "dependencies": {
     "apollo-server-express": "^2.9.15",
@@ -15,13 +18,20 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "nodemon": "^1.19.4",
-    "pg": "^7.12.1"
+    "pg": "8.6.0"
   },
   "scripts": {
     "start": "nodemon index.js",
     "deploy": "git push heroku master",
     "log": "heroku logs --tail",
-    "login": "heroku login"
+    "login": "heroku login",
+    "pg:start": "pg_ctl -D /usr/local/var/postgres start",
+    "pg:stop": "pg_ctl -D /usr/local/var/postgres stop",
+    "pg:create": "createdb audioshares_api",
+    "pg:connect": "psql audioshares_api",
+    "pg:version": "postgres -V",
+    "pg:login": "psql postgres -U andreasbeyer",
+    "heroku:connect": "heroku git:remote -a spotibet-api"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
