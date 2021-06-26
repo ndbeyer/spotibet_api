@@ -31,14 +31,13 @@ const assignAuthRoutes = (app) => {
   app.use(bodyParser.urlencoded({ extended: false }));
 
   app.get("/test", (req, res) => {
+    console.log(`hit /test`)
     res.status(200).json({ success: true, data: "that was a successful test" });
   });
 
   app.post("/get-jwt-for-auth-code", async (request, response) => {
+    console.log(`hit /get-jwt-for-auth-code with ${code} and ${code_verifier}`)
     try {
-
-      console.log(`hit /get-jwt-for-auth-code with ${code} and ${code_verifier}`)
-
       const { code, code_verifier } = request.body;
       if (!code || !code_verifier) {
         handleError("MISSING_INPUTS", response);
