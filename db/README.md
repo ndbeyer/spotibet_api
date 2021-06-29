@@ -4,3 +4,6 @@
 - yarn
 - yarn pg:start
 - yarn pg:create
+
+
+- pseudeo
