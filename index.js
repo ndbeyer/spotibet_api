@@ -229,6 +229,6 @@ const server = new ApolloServer({
   },
 });
 
-server.applyMiddleware({ app, path: "/" });
+server.applyMiddleware({ app, path: "/", cors: true });
 
 app.listen({ port: process.env.PORT || 4000 });
