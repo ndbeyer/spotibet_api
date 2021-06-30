@@ -172,7 +172,7 @@ module.exports = class Bet {
     const betIdDb = Bet.decryptId(this.id);
     const row = (
       await db.query(
-        'SELECT artist_id AS "artistId", listeners_at_start_date AS "listenersAtStartDate", start_date::text AS "startDate" FROM public.bet WHERE id = $1',
+        'SELECT artist_id AS "artistId", listeners AS "listenersAtStartDate", start_date::text AS "startDate" FROM public.bet WHERE id = $1',
         [betIdDb]
       )
     ).rows[0];
