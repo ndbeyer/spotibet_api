@@ -1,7 +1,7 @@
 const getBody = require("./getBody");
 const cheerio = require("cheerio");
 
-const log = true
+const log = false
 
 const getMonthlyListeners = async (spotifyUrl) => {
   const artistUrl = `${spotifyUrl}`;
